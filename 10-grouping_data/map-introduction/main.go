@@ -28,4 +28,32 @@ func main() {
 	if v, ok := peopleAge["farhan"]; ok {
 		fmt.Println("THIS WILL PRINT", v)
 	}
+
+	buahBatu := [][]string{
+		{"farhan", "pratama"},
+		{"james", "bond"},
+	}
+
+	bojongsoang := [][]string{
+		{"miss", "moneypenny"},
+		{"andre", "taulany"},
+	}
+
+	kecamatan := map[string][][]string{
+		"buah batu":   buahBatu,
+		"bojongsoang": bojongsoang,
+	}
+	fmt.Println("================ A map of multidimensional slice")
+	for i, val := range kecamatan {
+		fmt.Println(i, val)
+	}
+
+	kabupaten := map[string]map[string][][]string{
+		"bandung": kecamatan,
+	}
+
+	fmt.Println("================ A map of a map of multidimensional slice")
+	for i, val := range kabupaten {
+		fmt.Println(i, val)
+	}
 }
