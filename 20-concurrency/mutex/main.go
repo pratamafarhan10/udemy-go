@@ -46,3 +46,5 @@ func main() {
 
 	fmt.Println(counter)
 }
+
+// *I would completely consider it best practice to use defer for the unlock. Go is very good at optimizing defer statements, so it won't cost you any speed. The only time I would skip defer for unlock, is if I am locking, running a statement that has zero chances of panicing, and then unlocking.
