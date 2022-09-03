@@ -1,0 +1,5 @@
+Bill kennedy say
+
+stay away from buffered channel, make sure your code is built in such a way there always interlocking component where a pass will happen between put on the channel and take it off the channel
+
+Channel seperti bermain estafet, sebuah value harus di pass dan diterima dalam waktu yang sama
