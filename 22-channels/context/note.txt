@@ -1,0 +1,7 @@
+Context is used to solve goroutine leakings
+
+For example, there is 1 process that deploy several goroutines
+when the process ends you want to cancel all the goroutines running as well
+so we use context to do that
+
+https://go.dev/blog/context
