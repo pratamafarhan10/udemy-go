@@ -40,7 +40,7 @@ func receive(even, odd <-chan int, quit <-chan bool) {
 				return
 			} else {
 				fmt.Println("Quit. v:", v)
-				return
+				// return
 			}
 		}
 	}
