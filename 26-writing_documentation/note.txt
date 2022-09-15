@@ -1,0 +1,12 @@
+go doc command
+Retrieve a comamnd for a package/function from our file
+
+example: 
+- go doc mymath
+- go doc sum
+
+godoc command
+To open the go documentation locally (if you cannot access the internet)
+
+example:
+godoc -http=:8080
