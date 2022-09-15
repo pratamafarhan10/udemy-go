@@ -1,0 +1,12 @@
+go test -coverage
+
+untuk melihat apakah semua statement sudah tercover oleh test atau belum
+
+go test -coverprofile [nama file. cth: c.out]
+go test -coverprofile c.out
+
+untuk membuat file baru yang berisi cover profile
+
+go tool cover -html=c.out
+
+untuk melihat apa yang tercover dan tidak melalui html

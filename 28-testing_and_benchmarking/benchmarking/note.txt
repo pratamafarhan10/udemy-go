@@ -1,0 +1,4 @@
+go test -bench [nama function benchmarknya atau pakai . biar semua benchmark ke run]
+
+go test -bench .
+go test -bench Greet
