@@ -85,3 +85,9 @@ func BenchmarkCount(b *testing.B) {
 		Count("drake")
 	}
 }
+
+func BenchmarkUseCount(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		UseCount("andre andre taulany")
+	}
+}
