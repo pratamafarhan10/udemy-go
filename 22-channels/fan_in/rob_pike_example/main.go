@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	c := fanIn(boring("farhan"), boring("james"))
+	c := fanIn(boring("james"), boring("bond"))
 
 	for i := 0; i < 10; i++ {
 		fmt.Println(<-c)
