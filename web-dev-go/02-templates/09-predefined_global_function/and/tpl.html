@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+  </head>
+  <body>
+
+    Example #1: range over a slice of structs
+    {{ range . }}
+    {{ . }}
+    {{ end }}
+
+    Example #2: using if to check is there any data given
+    {{ if . }}
+    {{ . }}
+    {{ end }}
+
+    Example #3: check with if with specific fieldname
+    {{ range . }}
+      {{ if .Goat }}
+      {{ .Name }} is a GOAT👑
+      {{ end }}
+    {{ end }}
+
+    Example #3: check with if and and with specific fieldname
+    {{ range . }}
+      {{ if and .Goat .IsActive}}
+      {{ .Name }} is a GOAT👑 and still active
+      {{ end }}
+    {{ end }}
+  </body>
+</html>

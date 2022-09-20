@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>{{ .Fall.Term }}</h1>
+    <h2>Courses</h2>
+    <ul>
+      {{ range .Fall.Courses }} 
+        <li>{{ .Code }} - {{ .Name }} - {{ .Sks }}</li>
+      {{ end }}
+    </ul>
+    <hr>
+
+    <h1>{{ .Spring.Term }}</h1>
+    <h2>Courses</h2>
+    <ul>
+      {{ range .Spring.Courses }} 
+        <li>{{ .Code }} - {{ .Name }} - {{ .Sks }}</li>
+      {{ end }}
+    </ul>
+    <hr>
+    
+    <h1>{{ .Summer.Term }}</h1>
+    <h2>Courses</h2>
+    <ul>
+      {{ range .Summer.Courses }} 
+        <li>{{ .Code }} - {{ .Name }} - {{ .Sks }}</li>
+      {{ end }}
+    </ul>
+  </body>
+</html>

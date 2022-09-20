@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+  </head>
+  <body>
+
+    Example #1: equal (==)
+    {{ if eq .Score1 .Score2  }}
+    <h1>They are equal!</h1>
+    {{ else }}
+    <h1>They are not equal!</h1>
+    {{ end }}
+    
+    Example #2: not equal (!=)
+    {{ if ne .Score1 .Score2  }}
+    <h1>They are not equal!</h1>
+    {{ else }}
+    <h1>They are not equal!</h1>
+    {{ end }}
+
+    Example #3: less than (<)
+    {{ if lt .Score1 .Score2  }}
+    <h1>Score1 is less than Score2!</h1>
+    {{ else }}
+    <h1>Score1 is not less than Score2!</h1>
+    {{ end }}
+
+    Example #4: less equal than (<=)
+    {{ if le .Score1 .Score2  }}
+    <h1>Score1 is less equal than Score2!</h1>
+    {{ else }}
+    <h1>Score1 is not less equal than Score2!</h1>
+    {{ end }}
+
+    Example #5: greater than (>)
+    {{ if gt .Score1 .Score2  }}
+    <h1>Score1 is greather than Score2!</h1>
+    {{ else }}
+    <h1>Score1 is not greather than Score2!</h1>
+    {{ end }}
+
+    Example #6: greater equal than (>=)
+    {{ if ge .Score1 .Score2  }}
+    <h1>Score1 is greather equal than Score2!</h1>
+    {{ else }}
+    <h1>Score1 is not greather equal than Score2!</h1>
+    {{ end }}
+
+  </body>
+</html>

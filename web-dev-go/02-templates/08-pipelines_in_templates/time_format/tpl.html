@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+  </head>
+  <body>
+
+    <h1>Today date</h1>
+
+    {{ $date := . }}
+    <h1>{{ $date }}</h1>
+    <h1>{{ formatDate $date }}</h1>
+
+  </body>
+</html>
