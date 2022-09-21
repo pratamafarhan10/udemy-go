@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request</title>
+</head>
+<body>
+    {{ if . }}
+        <h1>Method: {{ .Method }}</h1>
+        <h1>URL: {{ .URL }}</h1>
+        <h1>Host: {{ .Host }}</h1>
+        <h1>ContentLength: {{ .ContentLength }}</h1>
+        <h1>Name: {{ .Name }}</h1>
+        <h1>Phone_number: {{ .Phone_number }}</h1>
+        <h1>Age: {{ .Age }}</h1>
+        <h1>Submissions</h1>
+        {{ range $key, $values := .Submissions }}
+            <h2>{{ $key }}</h2>
+            <ul>
+                {{ range $value := $values }}
+                <li>{{ $value }}</li>
+                {{ end }}
+            </ul>
+        {{ end }}
+        <h1>Header</h1>
+        {{ range $key, $values := .Header }}
+            <h2>{{ $key }}</h2>
+            <ul>
+                {{ range $value := $values }}
+                <li>{{ $value }}</li>
+                {{ end }}
+            </ul>
+        {{ end }}
+    {{ end }}
+
+    <form action="/?name=james" method="post">
+        <input type="text" name="name" placeholder="Name">
+        <input type="text" name="phone_number" placeholder="Phone Number">
+        <input type="number" name="age" placeholder="Age">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
