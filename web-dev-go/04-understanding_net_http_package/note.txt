@@ -1,0 +1,5 @@
+type Handler interface {
+	ServeHTTP(ResponseWriter, *Request)
+}
+
+type handler merupakan tipe data yang memiliki method ServeHTTP

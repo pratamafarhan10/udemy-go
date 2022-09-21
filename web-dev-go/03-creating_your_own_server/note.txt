@@ -1,0 +1,4 @@
+TCP (transmission control protocol) bertugas untuk membawa data
+HTTP adalah protokol dibangun diatas TCP
+
+scanner := bufio.NewScanner(conn) tujuannya untuk ngescan request dari connection
