@@ -1,0 +1,13 @@
+{{ template "head" }}
+{{ if . }}
+<h1>Apply POST</h1>
+{{ else }}
+<h1>Apply</h1>
+<form action="/apply" method="post">
+    <button>Apply</button>
+</form>
+{{ end }}
+
+
+
+{{ template "foot" }}
