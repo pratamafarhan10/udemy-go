@@ -1,0 +1,1 @@
+Kalau pakai io.Copy berarti return file
