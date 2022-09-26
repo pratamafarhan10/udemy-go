@@ -1,0 +1,2 @@
+Kalau kita mau host a static website, hanya perlu membuat satu file yaitu index.html
+maka nanti go akan secara otomatis menampilkan index.html

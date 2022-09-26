@@ -1,0 +1,9 @@
+jadi http.FileServer itu ngeforward request url ke path yang udah kita tentukan
+
+contoh
+http.Handle("/resources/", http.FileServer(http.Dir("./assets")))
+maka url yang akan diakses menjadi /assets/resources
+
+Tujuan StripPrefix adalah memotong prefix dari path yang kita tentukan di handlenya
+http.Handle("/resources/", http.StripPrefix("/resources", http.FileServer(http.Dir("./assets"))))
+maka url yang akan diakses menjadi /assets (bisa mengakses file di dalam folder assets)
