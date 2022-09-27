@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/udemy-go/28-testing_and_benchmarking/example_tests/hello"
+	"github.com/udemy-go/basic-go-programming/28-testing_and_benchmarking/example_tests/hello"
 )
 
 func main() {

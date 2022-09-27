@@ -3,24 +3,24 @@ package hello
 import "fmt"
 
 func ExampleSayHello() {
-	fmt.Println(SayHello("Farhan"))
+	fmt.Println(SayHello("Sule"))
 	// Output:
-	// Hello Farhan, have a good day!
+	// Hello Sule, have a good day!
 }
 
 func ExampleSayHello_second() {
-	fmt.Println(SayHello("Andre"))
+	fmt.Println(SayHello("Sule"))
 	// Output:
-	// Hello Andre, have a good day!
+	// Hello Sule, have a good day!
 }
 
 func ExamplePerson_Introduction() {
 	p1 := Person{
-		Name: "Andre",
+		Name: "Sule",
 		Age:  53,
 	}
 
 	fmt.Println(p1.Introduction())
 	// Output:
-	// Hi, my name is Andre and I'm 53 years old
+	// Hi, my name is Sule and I'm 53 years old
 }
