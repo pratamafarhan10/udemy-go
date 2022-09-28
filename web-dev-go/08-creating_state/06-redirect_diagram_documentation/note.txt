@@ -1,0 +1,18 @@
+=== HTTP ===
+
+Client -> Server
+Request: 
+- request line: method, URI, HTTP version, crlf
+- headers
+- body
+
+Client <- Server
+Response: 
+- status line: http version, status code, reason phrase, crlf
+- headers
+- body
+
+=== Redirection 3xx ===
+301 moved permanently
+303 see other (always GET)
+307 temporary redirect (keep the method the same as the request)
