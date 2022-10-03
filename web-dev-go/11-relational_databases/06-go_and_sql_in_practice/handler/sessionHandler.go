@@ -11,11 +11,13 @@ import (
 func RevokeSession(c *http.Cookie) *http.Cookie {
 	c.MaxAge = -1
 
-	ok := model.DeleteSession(c.Value)
+	go func(v string) {
+		err := model.DeleteSession(c.Value)
 
-	if !ok {
-		log.Panic("Failed to delete session")
-	}
+		if err != nil {
+			log.Println(err)
+		}
+	}(c.Value)
 
 	c.Value = ""
 
@@ -23,7 +25,10 @@ func RevokeSession(c *http.Cookie) *http.Cookie {
 }
 
 func StillAuthenticated(s string) bool {
-	session := model.GetSessionById(s)
+	session, err := model.GetSessionById(s)
+	if err != nil {
+		log.Println(err)
+	}
 
 	st, err := time.Parse(time.Layout, session.LastActivity)
 	if err != nil {

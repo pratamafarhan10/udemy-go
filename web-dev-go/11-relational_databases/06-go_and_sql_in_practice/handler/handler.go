@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -32,7 +33,10 @@ func Index(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := GetUser(w, c)
+	user, err := GetUser(w, c)
+	if err != nil {
+		log.Println(err)
+	}
 
 	tpl.ExecuteTemplate(w, "index.html", user)
 }
@@ -75,10 +79,11 @@ func Register(w http.ResponseWriter, req *http.Request) {
 			Age:       i,
 		}
 
-		ok := model.CreateUser(d)
+		err = model.CreateUser(d)
 
-		if !ok {
-			log.Println("Failed to create user")
+		if err != nil {
+			log.Println(err)
+			return
 		}
 
 		http.Redirect(w, req, "/login", http.StatusSeeOther)
@@ -101,11 +106,20 @@ func Login(w http.ResponseWriter, req *http.Request) {
 		u := req.FormValue("username")
 		p := req.FormValue("password")
 
-		user := model.GetUserByUsername(u)
+		user, err := model.GetUserByUsername(u)
 
-		err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(p))
+		if err != nil || (model.User{}) == user {
+			fmt.Println("error disini")
+			tpl.ExecuteTemplate(w, "login.html", "wrong")
+			return
+		}
 
-		if u != user.Username || err != nil || (model.User{}) == user {
+		fmt.Println(user)
+
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(p))
+
+		if u != user.Username || err != nil {
+			fmt.Println("error disana")
 			tpl.ExecuteTemplate(w, "login.html", "wrong")
 			return
 		}
@@ -120,14 +134,15 @@ func Login(w http.ResponseWriter, req *http.Request) {
 
 		sd := model.SessionData{
 			Id:           sId.String(),
-			LastActivity: time.Now().String(),
+			LastActivity: time.Now().Format(time.Layout),
 			User_id:      user.Id,
 		}
 
-		ok := model.CreateSession(sd)
+		err = model.CreateSession(sd)
 
-		if !ok {
-			log.Println("Failed to create session")
+		if err != nil {
+			log.Println(err)
+			return
 		}
 
 		http.SetCookie(w, cookie)
@@ -136,6 +151,69 @@ func Login(w http.ResponseWriter, req *http.Request) {
 	}
 
 	tpl.ExecuteTemplate(w, "login.html", nil)
+}
+
+func UpdateUser(w http.ResponseWriter, req *http.Request) {
+	c, err := req.Cookie("session")
+	if err != nil {
+		http.Redirect(w, req, "/login", http.StatusSeeOther)
+		return
+	}
+
+	ok := StillAuthenticated(c.Value)
+
+	if !ok {
+		http.Redirect(w, req, "/logout", http.StatusSeeOther)
+		return
+	}
+
+	user, err := GetUser(w, c)
+	if err != nil {
+		log.Println(err)
+	}
+
+	if req.Method == http.MethodPost {
+		u := req.FormValue("username")
+		p := req.FormValue("password")
+		fn := req.FormValue("firstname")
+		ln := req.FormValue("lastname")
+		age := req.FormValue("age")
+		role := req.FormValue("role")
+
+		i, err := strconv.Atoi(age)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		hp, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.DefaultCost)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		d := model.User{
+			Id:        user.Id,
+			Username:  u,
+			Password:  string(hp),
+			FirstName: fn,
+			LastName:  ln,
+			Role:      role,
+			Age:       i,
+		}
+
+		err = model.UpdateUser(d)
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		http.Redirect(w, req, "/", http.StatusSeeOther)
+		return
+	}
+
+	tpl.ExecuteTemplate(w, "updateUser.html", user)
 }
 
 func Logout(w http.ResponseWriter, req *http.Request) {
@@ -164,7 +242,10 @@ func DefaultUser(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := GetUser(w, c)
+	user, err := GetUser(w, c)
+	if err != nil {
+		log.Println(err)
+	}
 
 	if user.Role != "user" {
 		http.Error(w, "Page not found", http.StatusNotFound)
@@ -187,7 +268,10 @@ func Admin(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	user := GetUser(w, c)
+	user, err := GetUser(w, c)
+	if err != nil {
+		log.Println(err)
+	}
 
 	if user.Role != "admin" {
 		http.Error(w, "Page not found", http.StatusNotFound)
@@ -197,17 +281,24 @@ func Admin(w http.ResponseWriter, req *http.Request) {
 	tpl.ExecuteTemplate(w, "admin.html", user)
 }
 
-func GetUser(w http.ResponseWriter, c *http.Cookie) model.User {
-	userSession := model.GetSessionById(c.Value)
-	user := model.GetUserById(userSession.User_id)
-
-	// Update last LastActivity
-	userSession.LastActivity = time.Now().String()
-	ok := model.UpdateSession(userSession)
-
-	if !ok {
-		log.Println("Failed to update session")
+func GetUser(w http.ResponseWriter, c *http.Cookie) (model.User, error) {
+	userSession, err := model.GetSessionById(c.Value)
+	if err != nil {
+		return model.User{}, err
+	}
+	user, err := model.GetUserById(userSession.User_id)
+	if err != nil {
+		return model.User{}, err
 	}
 
-	return user
+	// Update last LastActivity
+	userSession.LastActivity = time.Now().Format(time.Layout)
+	err = model.UpdateSession(userSession)
+
+	if err != nil {
+		fmt.Println(err, "ERRORRRR")
+		return model.User{}, err
+	}
+
+	return user, nil
 }

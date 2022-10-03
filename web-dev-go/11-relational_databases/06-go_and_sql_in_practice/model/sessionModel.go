@@ -1,24 +1,23 @@
 package model
 
 import (
-	"database/sql"
 	"reflect"
-	"strconv"
 
 	"github.com/udemy-go/web-dev-go/11-relational_databases/06-go_and_sql_in_practice/database"
 )
 
 type SessionData struct {
-	Id, LastActivity string
-	User_id          int
+	Id           string
+	User_id      int
+	LastActivity string
 }
 
-func GetSessionById(id string) SessionData {
-	query := `SELECT * FROM sessions WHERE Id=` + id
+func GetSessionById(id string) (SessionData, error) {
+	query := `SELECT * FROM sessions WHERE Id=?`
 
-	rows, err := database.Db.Query(query)
-	if err != sql.ErrNoRows {
-		return SessionData{}
+	rows, err := database.Db.Query(query, id)
+	if err != nil {
+		return SessionData{}, err
 	}
 
 	sd := SessionData{}
@@ -34,44 +33,58 @@ func GetSessionById(id string) SessionData {
 		}
 
 		err := rows.Scan(columns...)
-		check(err)
+		if err != nil {
+			return SessionData{}, err
+		}
 	}
 
-	return sd
+	return sd, nil
 }
 
-func CreateSession(d SessionData) bool {
-	query := `INSERT INTO sessions VALUES (NULL, "` + d.Id + `", "` + strconv.Itoa(d.User_id) + `", "` + d.LastActivity + `")`
+func CreateSession(d SessionData) error {
+	query := `INSERT INTO sessions VALUES (?, ?, ?)`
 
-	res, err := database.Db.Exec(query, nil)
-	check(err)
+	res, err := database.Db.Exec(query, d.Id, d.User_id, d.LastActivity)
+	if err != nil {
+		return err
+	}
 
-	n, err := res.RowsAffected()
-	check(err)
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-	return n >= 1
+	return nil
 }
 
-func DeleteSession(id string) bool {
-	query := `DELETE FROM sessions WHERE Id=` + id
+func DeleteSession(id string) error {
+	query := `DELETE FROM sessions WHERE Id=?`
 
-	res, err := database.Db.Exec(query)
-	check(err)
+	res, err := database.Db.Exec(query, id)
+	if err != nil {
+		return err
+	}
 
-	n, err := res.RowsAffected()
-	check(err)
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-	return n >= 1
+	return nil
 }
 
-func UpdateSession(d SessionData) bool {
-	query := `UPDATE users SET Id=` + d.Id + `, User_id=` + strconv.Itoa(d.User_id) + `, LastActivity=` + d.LastActivity + ` WHERE Id=` + d.Id
+func UpdateSession(d SessionData) error {
+	query := `UPDATE sessions SET Id = ?, User_id = ?, LastActivity = ? WHERE Id=?`
 
-	res, err := database.Db.Exec(query, nil)
-	check(err)
+	res, err := database.Db.Exec(query, d.Id, d.User_id, d.LastActivity, d.Id)
+	if err != nil {
+		return err
+	}
 
-	n, err := res.RowsAffected()
-	check(err)
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-	return n >= 1
+	return nil
 }

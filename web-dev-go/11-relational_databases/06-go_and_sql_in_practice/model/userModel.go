@@ -1,35 +1,41 @@
 package model
 
 import (
-	"database/sql"
+	"log"
 	"reflect"
-	"strconv"
 
 	"github.com/udemy-go/web-dev-go/11-relational_databases/06-go_and_sql_in_practice/database"
 )
 
 type User struct {
+	Id                                            int
 	Username, Password, FirstName, LastName, Role string
-	Id, Age                                       int
+	Age                                           int
 }
 
-func CreateUser(user User) bool {
+func CreateUser(user User) error {
 	query := `INSERT INTO users VALUES (NULL, ?, ?, ?, ?, ?, ?)`
 	res, err := database.Db.Exec(query, user.Username, user.Password, user.FirstName, user.LastName, user.Role, user.Age)
-	check(err)
+	if err != nil {
+		log.Panicln(err)
+		return err
+	}
 
-	n, err := res.RowsAffected()
-	check(err)
+	_, err = res.RowsAffected()
+	if err != nil {
+		log.Panicln(err)
+		return err
+	}
 
-	return n >= 1
+	return err
 }
 
-func GetUserById(id int) User {
+func GetUserById(id int) (User, error) {
 	query := `SELECT * FROM users WHERE Id=?`
 
 	rows, err := database.Db.Query(query, id)
-	if err != sql.ErrNoRows {
-		return User{}
+	if err != nil {
+		return User{}, err
 	}
 
 	user := User{}
@@ -45,19 +51,21 @@ func GetUserById(id int) User {
 		}
 
 		err = rows.Scan(columns...)
-		check(err)
+		if err != nil {
+			return User{}, err
+		}
 	}
 
-	return user
+	return user, nil
 }
 
-func GetUserByUsername(username string) User {
+func GetUserByUsername(username string) (User, error) {
 	query := `SELECT * FROM users WHERE Username=?`
 
 	rows, err := database.Db.Query(query, username)
 
-	if err != sql.ErrNoRows {
-		return User{}
+	if err != nil {
+		return User{}, err
 	}
 
 	user := User{}
@@ -73,34 +81,44 @@ func GetUserByUsername(username string) User {
 		}
 
 		err = rows.Scan(columns...)
-		check(err)
+		if err != nil {
+			return User{}, err
+		}
 	}
 
-	return user
+	return user, nil
 }
 
-func UpdateUser(user User) bool {
+func UpdateUser(user User) error {
 	query := `UPDATE users 
-	SET Username=` + user.Username + `, Password=` + user.Password + `, FirstName=` + user.FirstName + `, LastName=` + user.LastName + `, Role=` + user.Role + `, Age=` + strconv.Itoa(user.Age) + ` 
-	WHERE Id=` + strconv.Itoa(user.Id)
+	SET Username=?, Password=?, FirstName=?, LastName=?, Role=?, Age=? 
+	WHERE Id=?`
 
-	res, err := database.Db.Exec(query, nil)
-	check(err)
+	res, err := database.Db.Exec(query, user.Username, user.Password, user.FirstName, user.LastName, user.Role, user.Age, user.Id)
+	if err != nil {
+		return err
+	}
 
-	n, err := res.RowsAffected()
-	check(err)
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-	return n >= 1
+	return nil
 }
 
-func DeleteUser(id int) bool {
-	query := `DELETE FROM users WHERE Id=` + strconv.Itoa(id)
+func DeleteUser(id int) error {
+	query := `DELETE FROM users WHERE Id=?`
 
-	res, err := database.Db.Exec(query, nil)
-	check(err)
+	res, err := database.Db.Exec(query, id)
+	if err != nil {
+		return err
+	}
 
-	n, err := res.RowsAffected()
-	check(err)
+	_, err = res.RowsAffected()
+	if err != nil {
+		return err
+	}
 
-	return n >= 1
+	return nil
 }
