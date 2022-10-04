@@ -1,0 +1,2 @@
+salah satu case menggunakan base 64 encoding adalah menyimpan data pada cookie dalam bentuk string
+kita tidak bisa menyimpan json pada cookie karena ada kutip dua ("), maka dari itu kita encode dulu pakai base64
