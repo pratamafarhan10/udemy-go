@@ -1,13 +1,14 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/julienschmidt/httprouter"
+	auth "github.com/udemy-go/web-dev-go/15-go_and_mongodb/crud/middleware"
 	"github.com/udemy-go/web-dev-go/15-go_and_mongodb/crud/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -17,6 +18,50 @@ type AuthController struct{}
 
 func NewAuthController() *AuthController {
 	return &AuthController{}
+}
+
+func (ac AuthController) LoginFormValidation(username, password string) map[string][]string {
+	v := map[string][]string{}
+
+	if username == "" {
+		v["username"] = append(v["username"], "username cannot be empty")
+	}
+
+	if password == "" {
+		v["password"] = append(v["password"], "password cannot be empty")
+	}
+
+	return v
+}
+
+func (ac AuthController) RegisterFormValidation(username, password, firstname, lastname, age, role string) map[string][]string {
+	v := map[string][]string{}
+
+	if username == "" {
+		v["username"] = append(v["username"], "username cannot be empty")
+	}
+
+	if password == "" {
+		v["password"] = append(v["password"], "password cannot be empty")
+	}
+
+	if firstname == "" {
+		v["firstname"] = append(v["firstname"], "firstname cannot be empty")
+	}
+
+	if lastname == "" {
+		v["lastname"] = append(v["lastname"], "lastname cannot be empty")
+	}
+
+	if age == "" {
+		v["age"] = append(v["age"], "age cannot be empty")
+	}
+
+	if role == "" {
+		v["role"] = append(v["role"], "role cannot be empty")
+	}
+
+	return v
 }
 
 func (ac AuthController) LoginView(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -39,25 +84,29 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
+	valid := ac.LoginFormValidation(username, password)
+	if len(valid) != 0 {
+		data := struct{ Wrong string }{Wrong: "form not valid"}
+		tpl.ExecuteTemplate(w, "login.html", data)
+		return
+	}
+
 	user := models.User{
 		Username: username,
 	}
 
-	err = models.GetUserByUsername(user, &user)
+	err = user.GetUser(bson.M{"username": user.Username}, &user)
 	if err == mongo.ErrNoDocuments {
-		log.Println("LOGIN USERNAME NOT FOUND", err)
 		data := struct{ Wrong string }{Wrong: "wrong username or password"}
 		tpl.ExecuteTemplate(w, "login.html", data)
 		return
 	} else if err != nil {
-		log.Println("LOGIN ERROR", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil || username != user.Username {
-		log.Println("LOGIN USERNAME NOT FOUND", err)
 		data := struct{ Wrong string }{Wrong: "wrong username or password"}
 		tpl.ExecuteTemplate(w, "login.html", data)
 		return
@@ -70,7 +119,6 @@ func (ac AuthController) Login(w http.ResponseWriter, r *http.Request, _ httprou
 
 	err = models.UpdateUserSession(user)
 	if err != nil {
-		log.Println("ERROR UPDATE USER SESSION IN LOGIN", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -107,6 +155,13 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 	age := r.FormValue("age")
 	role := r.FormValue("role")
 
+	valid := ac.RegisterFormValidation(username, password, firstname, lastname, age, role)
+	if len(valid) != 0 {
+		data := struct{ Wrong string }{Wrong: "form not valid"}
+		tpl.ExecuteTemplate(w, "register.html", data)
+		return
+	}
+
 	ps, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -117,11 +172,14 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 		Username: username,
 	}
 
-	err = models.GetUserByUsername(user, &user)
-	if err != mongo.ErrNoDocuments {
-		log.Println("USERNAME ALREADY TAKEN", err)
+	// Check if username already taken
+	uat, err := user.UsernameAlreadyTaken()
+	if uat {
 		data := struct{ UsernameTaken string }{UsernameTaken: "Username already taken"}
-		tpl.ExecuteTemplate(w, "register.html", data)
+		tpl.ExecuteTemplate(w, "updateUser.html", data)
+		return
+	} else if err != nil && err != mongo.ErrNoDocuments {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -135,12 +193,41 @@ func (ac AuthController) Register(w http.ResponseWriter, r *http.Request, _ http
 		Role:      role,
 	}
 
-	err = models.InsertUser(user)
+	err = user.InsertUser()
 	if err != nil {
-		log.Println("ERROR INSERT USER IN REGISTER", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func (ac AuthController) Logout(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	user, c, err := auth.Authenticate(r)
+
+	if err == http.ErrNoCookie {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	} else if err != nil && err.Error() != "session timeout" {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	c.MaxAge = -1
+
+	user.Session.SessionId = ""
+	user.Session.LastActivity = ""
+
+	go func() {
+		err = models.UpdateUserSession(user)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+	}()
+
+	c.Value = ""
+
+	http.SetCookie(w, c)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

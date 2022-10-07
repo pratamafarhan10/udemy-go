@@ -21,38 +21,42 @@ type User struct {
 	Session        SessionData        `bson:"sessionData" json:"sessionData"`
 }
 
-func InsertUser(user User) error {
+func (user User) InsertUser() error {
 	_, err := userCollection.InsertOne(context.Background(), user)
 	return err
 }
 
-func GetUserByUsername(user User, container *User) error {
+func (user User) GetUser(filter bson.M, dst *User) error {
+	res := userCollection.FindOne(context.Background(), filter)
+	return user.DecodeData(res, dst)
+}
+
+func (user User) GetUserByUsername(dst *User) error {
 	res := userCollection.FindOne(context.Background(), bson.M{"username": user.Username})
-	return DecodeData(res, container)
+	return user.DecodeData(res, dst)
 }
 
-func GetUserBySessionId(user User, container *User) error {
+func (user User) GetUserBySessionId(dst *User) error {
 	res := userCollection.FindOne(context.Background(), bson.M{"sessionData.sessionId": user.Session.SessionId})
-	return DecodeData(res, container)
+	return user.DecodeData(res, dst)
 }
 
-func UpdateUser(user User) error {
+func (user User) UpdateUser() error {
 	_, err := userCollection.UpdateOne(context.Background(), bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"username": user.Username, "password": user.Password, "firstname": user.FirstName, "lastname": user.LastName, "role": user.Role, "age": user.Age, "profilePicture": user.ProfilePicture}})
 	return err
 }
 
-func UpdateUserSession(user User) error {
-	_, err := userCollection.UpdateOne(context.Background(), bson.M{"_id": user.Id}, bson.M{"$set": bson.M{"sessionData": user.Session}})
-	return err
+func (user User) UsernameAlreadyTaken() (bool, error) {
+	dst := User{
+		Username: user.Username,
+	}
+
+	err := user.GetUserByUsername(&dst)
+	return err != mongo.ErrNoDocuments, err
 }
 
-func UpdateUserSessionBySessionId(sessionId, lastActivity string) error {
-	_, err := userCollection.UpdateOne(context.Background(), bson.M{"sessionData.sessionId": sessionId}, bson.M{"$set": bson.M{"sessionData.sessionId": sessionId, "sessionData.lastActivity": lastActivity}})
-	return err
-}
-
-func DecodeData(res *mongo.SingleResult, container *User) error {
-	err := res.Decode(&container)
+func (user User) DecodeData(res *mongo.SingleResult, dst *User) error {
+	err := res.Decode(&dst)
 	if err != nil {
 		log.Println(err == mongo.ErrNoDocuments)
 		log.Println("ERROR DECODE GETUSER")

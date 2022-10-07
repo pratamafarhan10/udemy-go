@@ -18,6 +18,9 @@ func Routers() *httprouter.Router {
 	router.POST("/register", ac.Register)
 	router.GET("/update", uc.UpdateView)
 	router.POST("/update", uc.Update)
+	router.GET("/user", uc.UserPage)
+	router.GET("/admin", uc.AdminPage)
+	router.GET("/logout", ac.Logout)
 	router.Handler("GET", "/assets/*filepath", http.StripPrefix("/assets", http.FileServer(http.Dir("./assets"))))
 	return router
 }
